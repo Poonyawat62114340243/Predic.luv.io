@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ทำนายความรัก</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            text-align: center;
+            padding: 50px;
+            overflow: hidden;
+            position: relative;
+            transition: background-color 0.5s ease;
+            display: grid; /* ใช้ Grid Layout สำหรับ body */
+            grid-template-columns: 1fr 1fr; /* สร้าง 2 columns */
+            gap: 20px; /* ช่องว่างระหว่าง columns */
+        }
+        .container, #chartContainer {
+            max-width: 90%; /* ปรับขนาดให้พอดีกับหน้าจอ */
+            margin: auto;
+            padding: 30px;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: filter 0.3s ease;
+            position: relative;
+            z-index: 20;
+        }
+        h1 {
+            color: #ff6f91;
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+        .result {
+            margin-top: 20px;
+            font-size: 22px;
+            color: #ff2e63;
+            transition: color 0.5s ease;
+        }
+        label {
+            font-size: 18px;
+            color: #333;
+        }
+        input[type="text"], input[type="date"] {
+            padding: 10px;
+            width: 90%;
+            margin: 10px 0;
+            border: 2px solid #ff6f91;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #ff6f91;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin: 10px;
+        }
+        button:hover {
+            background-color: #ff2e63;
+        }
+        .heart {
+            position: absolute;
+            animation: fall 3s linear infinite;
+            width: 50px;
+            height: 50px;
+        }
+        @keyframes fall {
+            0% {top: -50px;}
+            100% {top: 100vh;}
+        }
+        .broken-heart {
+            color: black;
+        }
+        .blurred {
+            filter: blur(5px);
+        }
+        .pink-blur-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 192, 203, 0.5);
+            z-index: 10;
+            filter: blur(5px);
+            pointer-events: none;
+        }
+        .center-clear {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 600px;
+            height: 200px;
+            background-color: rgba(255, 230, 230, 0);
+            z-index: 15;
+        }
+        .dark-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 10;
+            pointer-events: none;
+        }
+        .broken-theme {
+            background-color: #333;
+        }
+        .broken-text {
+            color: #ff4d4d;
+        }
+        #chartContainer {
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        canvas {
+            max-width: 100%;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Container สำหรับการทำนาย -->
+    <div class="container" id="mainContainer">
+        <h1>ทำนายความรักของคุณ</h1>
+        <form id="loveForm">
+            <label for="name">ชื่อของคุณ:</label><br>
+            <input type="text" id="name" name="name" required><br><br>
+            <label for="birthdate">วันเกิดของคุณ:</label><br>
+            <input type="date" id="birthdate" name="birthdate" required><br><br>
+            <button type="button" onclick="predictLove()">ทำนาย</button>
+            <button type="button" onclick="resetForm()">รีเฟรช</button>
+        </form>
+        <div class="result" id="result"></div>
+    </div>
+
+    <!-- Container สำหรับกราฟ -->
+    <div id="chartContainer">
+        <canvas id="myChart"></canvas>
+    </div>
+
+    <!-- เพิ่มสคริปต์ Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script>
+        let chart;  // ตัวแปรสำหรับเก็บอินสแตนซ์ของกราฟ
+
+        function predictLove() {
+            const name = document.getElementById('name').value;
+            const birthdate = document.getElementById('birthdate').value;
+            let resultText = '';
+
+            if (name && birthdate) {
+                const successRate = Math.floor(Math.random() * 100) + 1; // สุ่มเปอร์เซ็นต์ความสมหวัง
+                const failureRate = 100 - successRate; // คำนวณเปอร์เซ็นต์ความผิดหวัง
+
+                if (successRate >= 50) {
+                    resultText = predictLoveSuccess(name, successRate, failureRate);
+                    createHeartAnimation();
+                    createPinkBlurAnimation();
+                } else {
+                    resultText = predictLoveFailure(name, successRate, failureRate);
+                    createBrokenHeartAnimation();
+                }
+
+                // สร้างหรืออัปเดตกราฟหลังจากทำนายเสร็จ
+                createOrUpdateChart(successRate, failureRate);
+
+            } else {
+                resultText = 'กรุณากรอกข้อมูลทั้งหมด!';
+            }
+
+            document.getElementById('result').innerText = resultText;
+        }
+
+        function predictLoveSuccess(name, successRate, failureRate) {
+            const predictions = [
+                "ความรักของคุณกำลังมา! เตรียมพร้อมสำหรับสิ่งที่น่าประทับใจในไม่ช้านี้!",
+                "มีโอกาสที่คุณจะได้พบกับคนพิเศษที่ไม่คาดคิดในเร็ว ๆ นี้!",
+                "ความรักของคุณดูสดใสและเต็มไปด้วยความหวัง!",
+                "คุณจะได้รับของขวัญจากคนที่คุณรักในเร็ว ๆ นี้!",
+                "ความรักของคุณกำลังเติบโตและเบ่งบานในทางที่งดงาม!",
+                "มีใครบางคนที่กำลังสนใจคุณอยู่ ลองเปิดใจรับดู!",
+                "ความรักของคุณเป็นไปได้อย่างราบรื่นและน่าตื่นเต้น!",
+                "คุณจะพบกับความรักที่แท้จริงที่เป็นแรงบันดาลใจให้กับชีวิตคุณ!",
+                "ความรักของคุณจะถูกเติมเต็มด้วยความสุขและความสมหวัง!"
+            ];
+
+            const randomIndex = Math.floor(Math.random() * predictions.length);
+            return `${name}, ${predictions[randomIndex]} ความสมหวัง: ${successRate}%, ความผิดหวัง: ${failureRate}%`;
+        }
+
+        function predictLoveFailure(name, successRate, failureRate) {
+            const sadPredictions = [
+                "คุณอาจต้องเผชิญกับอุปสรรคเล็กน้อยในความรัก แต่ทุกอย่างจะดีขึ้นในที่สุด!",
+                "ช่วงนี้คุณอาจจะได้ยินข่าวที่ไม่ค่อยดีเกี่ยวกับความรักของคุณ!",
+                "คนที่คุณรักอาจจะทำให้คุณรู้สึกสับสนในเร็ว ๆ นี้!",
+                "ความรักของคุณอาจเจอปัญหาที่ท้าทาย!",
+                "เตรียมพร้อมสำหรับการเปลี่ยนแปลงที่ยากลำบากในความรักของคุณ!",
+                "ใครบางคนที่คุณสนใจอาจจะไม่เห็นค่าคุณเท่าที่คุณหวังไว้!",
+                "คุณอาจต้องให้เวลากับตัวเองและความรักของคุณ!",
+                "มีโอกาสที่คุณจะต้องเลือกทางที่ยากลำบากเกี่ยวกับความรักของคุณ!",
+                "ความรักของคุณอาจต้องการเวลาในการเยียวยา!"
+            ];
+
+            const randomIndex = Math.floor(Math.random() * sadPredictions.length);
+            return `${name}, ${sadPredictions[randomIndex]} ความสมหวัง: ${successRate}%, ความผิดหวัง: ${failureRate}%`;
+        }
+
+        function createHeartAnimation() {
+            const numberOfHearts = 10;
+
+            for (let i = 0; i < numberOfHearts; i++) {
+                const heart = document.createElement('div');
+                heart.className = 'heart';
+                heart.innerHTML = '❤️';
+                heart.style.left = Math.random() * window.innerWidth + 'px';
+                heart.style.animationDelay = `${Math.random() * 2}s`;
+                document.body.appendChild(heart);
+
+                setTimeout(() => {
+                    document.body.removeChild(heart);
+                }, 3000);
+            }
+        }
+
+        function createBrokenHeartAnimation() {
+            const numberOfBrokenHearts = 10;
+
+            document.body.classList.add('broken-theme');
+            document.getElementById('result').classList.add('broken-text');
+            document.getElementById('mainContainer').classList.add('blurred');
+            
+            const overlay = document.createElement('div');
+            overlay.className = 'dark-overlay';
+            document.body.appendChild(overlay);
+
+            for (let i = 0; i < numberOfBrokenHearts; i++) {
+                const brokenHeart = document.createElement('div');
+                brokenHeart.className = 'heart broken-heart';
+                brokenHeart.innerHTML = '🖤';
+                brokenHeart.style.left = Math.random() * window.innerWidth + 'px';
+                brokenHeart.style.animationDelay = `${Math.random() * 2}s`;
+                document.body.appendChild(brokenHeart);
+
+                setTimeout(() => {
+                    document.body.removeChild(brokenHeart);
+                }, 3000);
+            }
+
+            setTimeout(() => {
+                document.body.removeChild(overlay);
+                document.getElementById('mainContainer').classList.remove('blurred');
+                document.body.classList.remove('broken-theme');
+                document.getElementById('result').classList.remove('broken-text');
+            }, 3000);
+        }
+
+        function createPinkBlurAnimation() {
+            const pinkOverlay = document.createElement('div');
+            pinkOverlay.className = 'pink-blur-overlay';
+            document.body.appendChild(pinkOverlay);
+
+            const clearCenter = document.createElement('div');
+            clearCenter.className = 'center-clear';
+            document.body.appendChild(clearCenter);
+
+            setTimeout(() => {
+                document.body.removeChild(pinkOverlay);
+                document.body.removeChild(clearCenter);
+            }, 3000);
+        }
+
+        function createOrUpdateChart(successRate, failureRate) {
+            const ctx = document.getElementById('myChart').getContext('2d');
+            if (chart) {
+                // ถ้ามีกราฟอยู่แล้ว ให้ทำการอัปเดต
+                chart.data.datasets[0].data = [successRate, failureRate];
+                chart.update();
+            } else {
+                // ถ้ายังไม่มีกราฟ ให้สร้างใหม่
+                chart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['ความสมหวัง', 'ความผิดหวัง'],
+                        datasets: [{
+                            data: [successRate, failureRate],
+                            backgroundColor: ['#ff6f91', '#ff2e63'],
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.label || '';
+                                        if (label) {
+                                            label += ': ';
+                                        }
+                                        if (context.parsed !== null) {
+                                            label += context.parsed + '%';
+                                        }
+                                        return label;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function resetForm() {
+            document.getElementById('loveForm').reset(); // รีเซ็ตฟอร์ม
+            document.getElementById('result').innerText = ''; // เคลียร์ผลลัพธ์
+            if (chart) {
+                chart.destroy(); // ทำลายกราฟเพื่อให้รีเฟรชใหม่
+                chart = null;
+            }
+        }
+    </script>
+</body>
+</html>
