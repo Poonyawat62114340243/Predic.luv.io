@@ -10,40 +10,68 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
             text-align: center;
-            padding: 50px;
+            padding: 20px;
             overflow: hidden;
             position: relative;
             transition: background-color 0.5s ease;
-            display: grid; /* ใช้ Grid Layout สำหรับ body */
-            grid-template-columns: 1fr 1fr; /* สร้าง 2 columns */
-            gap: 20px; /* ช่องว่างระหว่าง columns */
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
         }
+
+        /* Styles for larger screens (PCs) */
+        @media (min-width: 1024px) {
+            body {
+                grid-template-columns: 1fr 1fr; /* 2 columns on larger screens */
+                padding: 50px;
+            }
+        }
+
+        /* Styles for medium screens (iPads/Tablets) */
+        @media (min-width: 768px) and (max-width: 1023px) {
+            body {
+                grid-template-columns: 1fr; /* 1 column on medium screens */
+                padding: 30px;
+            }
+        }
+
+        /* Styles for smaller screens (Phones) */
+        @media (max-width: 767px) {
+            body {
+                grid-template-columns: 1fr; /* 1 column on smaller screens */
+                padding: 20px;
+            }
+        }
+
         .container, #chartContainer {
-            max-width: 90%; /* ปรับขนาดให้พอดีกับหน้าจอ */
+            width: 100%;
+            max-width: 500px;
             margin: auto;
             padding: 30px;
             background-color: white;
             border-radius: 15px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             transition: filter 0.3s ease;
-            position: relative;
-            z-index: 20;
         }
+
         h1 {
             color: #ff6f91;
             font-size: 2em;
             margin-bottom: 20px;
         }
+
         .result {
             margin-top: 20px;
             font-size: 22px;
             color: #ff2e63;
             transition: color 0.5s ease;
         }
+
         label {
             font-size: 18px;
             color: #333;
         }
+
         input[type="text"], input[type="date"] {
             padding: 10px;
             width: 90%;
@@ -52,6 +80,7 @@
             border-radius: 5px;
             font-size: 16px;
         }
+
         button {
             padding: 10px 20px;
             background-color: #ff6f91;
@@ -63,25 +92,31 @@
             transition: background-color 0.3s ease;
             margin: 10px;
         }
+
         button:hover {
             background-color: #ff2e63;
         }
+
         .heart {
             position: absolute;
             animation: fall 3s linear infinite;
             width: 50px;
             height: 50px;
         }
+
         @keyframes fall {
             0% {top: -50px;}
             100% {top: 100vh;}
         }
+
         .broken-heart {
             color: black;
         }
+
         .blurred {
             filter: blur(5px);
         }
+
         .pink-blur-overlay {
             position: fixed;
             top: 0;
@@ -93,6 +128,7 @@
             filter: blur(5px);
             pointer-events: none;
         }
+
         .center-clear {
             position: fixed;
             top: 50%;
@@ -103,6 +139,7 @@
             background-color: rgba(255, 230, 230, 0);
             z-index: 15;
         }
+
         .dark-overlay {
             position: fixed;
             top: 0;
@@ -113,21 +150,24 @@
             z-index: 10;
             pointer-events: none;
         }
+
         .broken-theme {
             background-color: #333;
         }
+
         .broken-text {
             color: #ff4d4d;
         }
+
         #chartContainer {
             padding: 20px;
             background-color: #ffffff;
             border-radius: 15px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
+
         canvas {
             max-width: 100%;
-            padding: 10px;
         }
     </style>
 </head>
